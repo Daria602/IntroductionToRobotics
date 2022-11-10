@@ -16,7 +16,7 @@ const int pinDP = 11;
 
 const int segSize = 8;
 const int segments[segSize] = {
-	pinA,
+  pinA,
   pinB,
   pinC,
   pinD,
