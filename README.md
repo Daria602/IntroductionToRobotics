@@ -76,3 +76,33 @@ This includes: homework requirements, implementation details (code, image files,
 * The code can be found [here](homework/homework_3/segmentWithJoystick.ino)
 * The video showcasing the functionality can be found [here](https://youtu.be/Gb5oqYhjoqA)
 
+## Homework 4
+### Requirements
+**Components**
+> A joystick, a 4 digit 7-segment display, a 74hc595 shift register, resistors and wires (per logic)
+
+**Technical Task**
+> Use the joystick to move through the 4 digit 7segment displays digits, 
+> press the button to lock in on the current digit and use the other axis 
+> to increment or decrement the number. Long press the button to reset 
+> all the digit values and the current position.
+
+**The system has the following states:**
+* **State 1**:
+  
+    Use a joystick axis to cycle through the 4 digits. Using the other axis does nothing. A blinking decimal point shows the current digit position. When pressing the button, you lock in on the selected digit and enter the second state.
+
+* **State 2** (initiated after a button press in State 1):   
+  
+    The decimal point stays always on, no longer blinking and you can no longer cycle through the 4 digits. Instead, using the other axis, you can increment or decrement the number on the current digit IN HEX (aka from 0 to F). Pressing the button again returns you to the previous state.
+
+* **State 3** (reset):   
+  
+    Toggled by long pressing the button only in the first state. When resetting, all the digits go back to 0 and the current position is set to the first (rightmost) digit, in the first state.
+
+### Solution
+* The physical setup:
+<img src="./homework/homework_4/4digitsDisplayWithJoystick_setup.jpeg">
+
+* The code can be found [here](homework/homework_4/4digitsDisplayWithJoystick.ino)
+* The video showcasing the functionality can be found [here](https://www.youtube.com/shorts/QC3vCTcmF3E)
