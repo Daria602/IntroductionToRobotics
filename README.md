@@ -101,6 +101,9 @@ This includes: homework requirements, implementation details (code, image files,
     Toggled by long pressing the button only in the first state. When resetting, all the digits go back to 0 and the current position is set to the first (rightmost) digit, in the first state.
 
 ### Solution
+* The connections can be seen here (with the exception of joystick)
+<img src="./homework/homework_4/4digitsDisplayWithJoystick_connections.png">
+
 * The physical setup:
 <img src="./homework/homework_4/4digitsDisplayWithJoystick_setup.jpeg">
 
