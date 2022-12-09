@@ -109,3 +109,24 @@ This includes: homework requirements, implementation details (code, image files,
 
 * The code can be found [here](homework/homework_4/4digitsDisplayWithJoystick.ino)
 * The video showcasing the functionality can be found [here](https://www.youtube.com/shorts/QC3vCTcmF3E)
+
+## Homework 5
+### Requirements
+**Components**
+> A joystick, a matrix with driver, a LCD display, resistors and wires (per logic)
+
+**Technical Task**
+> Create menu and a mini-game
+
+### Solution
+
+* The physical setup:
+<img src="./homework/homework_5/game_setup.jpeg">
+
+* The code can be found [here](homework/homework_5/game.ino)
+* The video showcasing the functionality can be found [here](https://youtu.be/1PpfjFSx9WE)
+
+> :warning: **This is not a final version of the code**. The code contains a lot of mistakes and requires a cleaning crew to be final. Plus, the game is not going toi be THIS :)
+
+
+*Feedback for the teacher: This is a big leap from the last project. The matrix is very sensitive to any kind of movement and breaks without any reason*
