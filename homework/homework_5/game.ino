@@ -106,8 +106,8 @@ byte level = 1;
 const int matrixSize = 8;
 
 int randomFoodLocation[2] = {
-  0,
-  0
+  7,
+  7
 };
 int playerLocation[2] = {
   5,
@@ -365,12 +365,15 @@ void inMenu() {
       }
       break;
     case changeContrast:
+      displayMatrixByColumn(star);
       modifyContrast(); 
       break;
     case changeLCDBrightness:
+      displayMatrixByColumn(star);
       changeLCDBright(); 
       break;
     case changeMatBrightness:
+      displayMatrixByColumn(star);
       changeMatBright(); 
       break;
   }
