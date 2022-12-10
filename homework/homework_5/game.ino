@@ -34,56 +34,54 @@ enum directions {
   left = 3,
   neutral = 4
 };
+
+enum menuStates {
+  initialMenuDisplay = 0,
+  playGame = 1,
+  seeHighscore = 2,
+  displaySettings = 3,
+  seeAbout = 4,
+  setDificulty = 5, 
+  changeContrast = 6,
+  changeLCDBrightness = 7,
+  changeMatBrightness = 8,
+  returnToMenu = 9
+};
+int currentState = initialMenuDisplay;
+
 bool joyMoved = false;
-const byte moveInterval = 600;
-unsigned long long lastMoved = 0;
 const int minThreshold = 300;
 const int maxThreshold = 700;
 byte lastSWValue = 1;
 byte buttonState = 1;
-unsigned long lastDebounceTime = 0;
-unsigned int debounceInterval = 50;
 
 
-// Addresses for EEPROM to read from
-int contrastAddress = 0;
-int brightLCDAddress = 1;
-int brightMatAddress = 2;
-int difficultyAddress = 3;
-int firstHighestScoreAdd = 4;
-int secondHighestScoreAdd = 5;
-int thirdHighestScoreAdd = 6;
-int firstHighestNameAdd = 7;
-int secondHighestNameAdd = 8;
-int thirdHighestNameAdd = 9;
 
-String firstHighestName = "AAA";
-String secondHighestName = "AAA";
-String thirdHighestName = "AAA";
-int highscoreIndex = 0;
-int highscoreCursorValue = 0;
-int firstHighestHighscore = 0;
-int secondHighestHighscore = 0;
-int thirdHighestHighscore = 0;
+const int nameMaxLength = 3; 
+struct {
+  int contrast;
+  int brightLCD;
+  int brightMat;
+  int difficulty;
+  int firstHighestScore;
+  int secondHighestScore;
+  int thirdHighestScore;
+  char firstHighestName[nameMaxLength];
+  char secondHighestName[nameMaxLength];
+  char thirdHighestName[nameMaxLength];
+} storedInMemory;
+
+int structAddress = 0;
 
 /* Game and menu mechanics */
-// Blinking food on Matrix
 byte foodState = HIGH;
-unsigned int foodBlinkInterval = 250; 
-unsigned long foodBlinkTimePassed = 0;
-
-// Blinking character on LCD
-const int charBlinkInterval = 400;
-unsigned long charBlinkTimePassed = 0;
 byte blinkCharState = 0;
 
 // to set the contrast
-int contrast;
 const int minContrast = 1;
 const int maxContrast = 9;
 
 // To set the difficulty
-int currentDifficulty;
 const int minDifficulty = 1;
 const int maxDifficulty = 3;
 enum difficulty {
@@ -93,86 +91,19 @@ enum difficulty {
 };
 
 // To set the brightness of LCD
-int currentLCDBright;
 const int minLCDBright = 1;
 const int maxLCDBright = 9;
 
 // To set the brightness of Matrix
-int currentMatBright;
 const int minMatBright = 1;
 const int maxMatBright = 9;
 
-
 int livesCount = 3;
 int score = 0;
-const String gameOverText = "Game Over :(";
+
 byte level = 1;
-byte isGameOver = 0;
-byte freeToReset = 0;
-
-const unsigned int initMenuLength = 4;
-String initialMenu[initMenuLength] = {
-  "Start",
-  "Highscore",
-  "Difficulty",
-  "Settings"
-};
-
-const unsigned int settingsMenuLength = 4;
-String settingsMenu[settingsMenuLength] = {
-  "Contrast",
-  "LCD Brightness",
-  "Mat Brightness",
-  "Back"
-};
-
-int index = 0;
-int cursorValue = 0;
-// Whether cursor in menu reached the end of the array
-byte reachedTheEnd = 0;
-
-const int nameLength = 3;
-char playerName[nameLength] = {
-  'A',
-  'A',
-  'A'
-};
-
-int playerNameAlphIndexes[nameLength] = {
-  0,
-  0,
-  0
-};
-int indexInName = 0;
-
-
-enum menuStates {
-  initialMenuDisplay = 0,
-  playGame = 1,
-  seeHighscore = 2,
-  setDificulty = 3, // +
-  displaySettings = 4,
-  changeContrast = 5,
-  changeLCDBrightness = 6, // display -> 0-7; matrix -> 0-7
-  changeMatBrightness = 7,
-  returnToMenu = 8
-};
-
-int currentState = initialMenuDisplay;
-byte isInMenu = 1;
-
 
 const int matrixSize = 8;
-byte gameConfig[matrixSize][matrixSize] = {
-  {0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 0, 0}
-};
 
 int randomFoodLocation[2] = {
   0,
@@ -183,15 +114,46 @@ int playerLocation[2] = {
   5
 };
 
-unsigned long long highscoreTimePassed = 0;
-byte bestFirst = 0;
-byte bestSecond = 0;
-byte bestThird = 0;
-byte notTheBest = 0;
 
+// Strings, charachters and images to print
+const String gameOverText = "Game Over :(";
+const int nameLength = 3;
+char playerName[nameLength] = {
+  'A',
+  'A',
+  'A'
+};
+int playerNameAlphIndexes[nameLength] = {
+  0,
+  0,
+  0
+};
+const unsigned int initMenuLength = 4;
+String initialMenu[initMenuLength] = {
+  "Start          ",
+  "Highscore",
+  "Settings",
+  "About"
+};
 
-
-/* Custom character library*/
+const unsigned int settingsMenuLength = 5;
+String settingsMenu[settingsMenuLength] = {
+  "Difficulty",
+  "Contrast",
+  "LCD Brightness",
+  "Mat Brightness",
+  "Back"
+};
+byte gameConfig[matrixSize][matrixSize] = {
+  {0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0}
+};
 byte heart[] = {
   B00000,
   B01010,
@@ -236,7 +198,6 @@ byte hardDifficulty[matrixSize] = {
   B11011011
 };
 
-// TODO: make face blinking like :) -> ;)
 const byte face[matrixSize] = {
   B00000000,
   B00100100,
@@ -259,7 +220,6 @@ const byte star[matrixSize] = {
   B00000000,
 };
 
-int enterNameIndex = 0;
 const char alphabet[26] = {
   'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
   'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 
@@ -267,57 +227,90 @@ const char alphabet[26] = {
   'Y', 'Z'
 };
 
+const char madeBy[] = "Made by Izotova Daria Github: https://github.com/Daria602/   ";
+
+
+// Time and intervals
+unsigned long lastDebounceTime = 0;
+unsigned int debounceInterval = 50;
+unsigned int foodBlinkInterval = 250; 
+unsigned long long foodBlinkTimePassed = 0;
+const int charBlinkInterval = 400;
+unsigned long long charBlinkTimePassed = 0;
+unsigned long long highscoreTimePassed = 0;
 unsigned long long thankYouTimePassed = 0;
+unsigned long long showTitleTime = 0;
+unsigned long long scrollTime = 0;
+unsigned int scrollSpeed = 250;
+const byte moveInterval = 600;
+unsigned long long lastMoved = 0;
+
+// Indexes 
+//Index of the menu shown
+int index = 0;
+int cursorValue = 0;
+int indexInName = 0;
+int enterNameIndex = 0;
+int positionCounter = 0;
+int highscoreIndex = 0;
+
+// Byte flags for loops
+byte goodToClearHighScore = 0;
+byte nameEntered = 0;
+byte isAboutPrinted = 0;
+byte isInMenu = 1;
+byte isGameOver = 0;
+byte freeToReset = 0;
+// Whether cursor in menu reached the end of the array
+byte reachedTheEnd = 0;
+byte bestFirst = 0;
+byte bestSecond = 0;
+byte bestThird = 0;
+byte notTheBest = 0;
+
+
+
+
+
+
+
+
+
+
+
 
 void setup() {
-  readValuesFromMemory();
+  Serial.begin(9600);
+  EEPROM.get(structAddress, storedInMemory);
   matrixSetup();
   LCDsetup();
   joystickSetup();
-  Serial.begin(9600);
+  
+  showTitleTime = millis(); 
 }
 
 
 void loop() {
-  if (isGameOver) {
-    stopTheGame();
+  if (millis() - showTitleTime <= 3000) {
+    lcd.setCursor(0, 0);
+    lcd.print("Game name here!");
   } else {
-    isInMenu ? inMenu() : inGame();
+    if (isGameOver) {
+      stopTheGame();
+    } else {
+      isInMenu ? inMenu() : inGame();
+    }
   }
-  Serial.println(firstHighestName);
 }
 
 
 /* Setup functions */
-void(* resetFunc) (void) = 10;
-
-void readValuesFromMemory() {
-  contrast = EEPROM.read(contrastAddress);
-  currentLCDBright = EEPROM.read(brightLCDAddress);
-  currentMatBright = EEPROM.read(brightMatAddress); 
-  currentDifficulty = EEPROM.read(difficultyAddress);
-
-  // TODO: READ THE VALUES FROM EEPROM
-  //int fAddress = firstHighestNameAdd + sizeof(firstHighestName);
-  //int sAddress = secondHighestNameAdd + sizeof(secondHighestName);
-  //int thAddress = thirdHighestNameAdd + sizeof(thirdHighestNameAdd);
-  //EEPROM.get(firstHighestNameAdd, firstHighestName);
-  //EEPROM.get(secondHighestNameAdd, firstHighestName);
-  //EEPROM.get(thirdHighestNameAdd, firstHighestName);
-  //firstHighestName = EEPROM.get(firstHighestNameAdd); //!= 0 ? EEPROM.get(firstHighestNameAdd) : "AAA";
-  //secondHighestName = EEPROM.get(secondHighestNameAdd); //!= 0 ? EEPROM.get(secondHighestNameAdd) : "AAA";
-  //thirdHighestName = EEPROM.get(thirdHighestNameAdd); //!= 0 ? EEPROM.get(thirdHighestNameAdd) : "AAA";
-
-  firstHighestName = "JEB";
-  secondHighestName = "POP";
-  thirdHighestName = "SAM";
-
-}
+void(* resetFunc) (void) = sizeof(storedInMemory);
 
 
 void matrixSetup() {
   lc.shutdown(0, false);
-  lc.setIntensity(0, map(currentMatBright, minMatBright, maxMatBright, 0, 15));
+  lc.setIntensity(0, map(storedInMemory.brightMat, minMatBright, maxMatBright, 0, 15));
   lc.clearDisplay(0);
 }
 
@@ -326,8 +319,8 @@ void LCDsetup() {
   lcd.begin(16, 2);
   pinMode(contrastPin, OUTPUT);
   pinMode(LCDBacklightPin, OUTPUT);
-  analogWrite(contrastPin, map(contrast, minContrast, maxContrast, 0, 255));
-  analogWrite(LCDBacklightPin, map(currentLCDBright, minLCDBright, maxLCDBright, 0, 255));
+  analogWrite(contrastPin, map(storedInMemory.contrast, minContrast, maxContrast, 0, 255));
+  analogWrite(LCDBacklightPin, map(storedInMemory.brightLCD, minLCDBright, maxLCDBright, 0, 255));
 }
 
 void joystickSetup() {
@@ -351,9 +344,15 @@ void inMenu() {
       showHighscores();
       displayMatrixByColumn(star);
       break;
+    case displaySettings:
+      showMenu(settingsMenu, settingsMenuLength); 
+      break;
+    case seeAbout:
+      showAbout();
+      break;
     case setDificulty:
       changeDifficulty(); 
-      switch(currentDifficulty) {
+      switch(storedInMemory.difficulty) {
         case easy:
           displayMatrixByColumn(easyDifficulty);
           break;
@@ -364,9 +363,6 @@ void inMenu() {
           displayMatrixByColumn(hardDifficulty);
           break;
       }
-      break;
-    case displaySettings:
-      showMenu(settingsMenu, settingsMenuLength); 
       break;
     case changeContrast:
       modifyContrast(); 
@@ -380,13 +376,44 @@ void inMenu() {
   }
 }
 
+
+void showAbout() {
+  if (isAboutPrinted) {
+    if (millis() - scrollTime >= scrollSpeed) {
+      positionCounter++;
+      if (positionCounter >= strlen(madeBy) - 1 - 16) {
+        lcd.clear();
+        isAboutPrinted = 0;
+      }
+      scrollTime = millis();
+    }
+    for (int i = 0; i < 16; i++) {
+      lcd.setCursor(i, 1);
+      lcd.print(madeBy[i + positionCounter]);
+    }
+  } else {
+    lcd.setCursor(0, 0);
+    lcd.print("Game name here... ");
+    isAboutPrinted = 1;
+    positionCounter = 0;
+    scrollTime = millis();
+  }
+
+  if (debounceButton()) {
+    lcd.clear();
+    currentState = initialMenuDisplay;
+    isAboutPrinted = 0;
+  }
+  
+}
+
 void inGame() {
   displayLCDInGame();
   putPlayer();
   putFood();
   displayCurrentMatrix(gameConfig);
   int direction = joyContinuousDirection();
-  if (millis() - lastMoved >= moveInterval / currentDifficulty) {
+  if (millis() - lastMoved >= moveInterval / storedInMemory.difficulty) {
     lastMoved = millis();
     movePlayer(direction);
   }
@@ -394,46 +421,55 @@ void inGame() {
 
 
 void showHighscores() {
-  String highscoreList[3] = {
-    firstHighestName,
-    secondHighestName,
-    thirdHighestName
-  };
-
-  
-  lcd.setCursor(0,0);
-  lcd.print(highscoreList[highscoreIndex]);
-  lcd.setCursor(0,1);
-  lcd.print(highscoreList[highscoreIndex+1]);
-  highscoreIndex > 0 ? printCharacter(15, 0, '^', 1) : printCharacter(15, 0, ' ', 0);
-  highscoreIndex < 1 ? printCharacter(15, 1, 'v', 1) : printCharacter(15, 1, ' ', 0);
-  // TODO: GET THE HIGHEST SCORES SOMEHOW
-  EEPROM.get(firstHighestScoreAdd, firstHighestHighscore);
-  EEPROM.get(secondHighestScoreAdd, secondHighestHighscore);
-  EEPROM.get(thirdHighestScoreAdd, thirdHighestHighscore);
+  lcd.setCursor(0, 0);
+  lcd.print(highscoreIndex + 1);
+  lcd.print(".");
+  lcd.setCursor(0, 1);
+  lcd.print(highscoreIndex + 2);
+  lcd.print(".");
   if (highscoreIndex == 0) {
-    lcd.setCursor(5, 0);
-    lcd.print(firstHighestHighscore);
-    lcd.setCursor(5, 1);
-    lcd.print(secondHighestHighscore);
-  } else if (highscoreIndex == 1) {
-    lcd.setCursor(5, 0);
-    lcd.print(secondHighestHighscore);
-    lcd.setCursor(5, 1);
-    lcd.print(thirdHighestHighscore);
+    lcd.setCursor(2, 0);
+    for (int i = 0; i < nameLength; i++) {
+        lcd.print(storedInMemory.firstHighestName[i]);
+    }
+    lcd.print(" ");
+    lcd.print(storedInMemory.firstHighestScore);
+    lcd.print("   ");
+    lcd.setCursor(2, 1);
+    for (int i = 0; i < nameLength; i++) {
+        lcd.print(storedInMemory.secondHighestName[i]);
+    }
+    lcd.print(" ");
+    lcd.print(storedInMemory.secondHighestScore);
+    lcd.print("   ");
+  } else {
+    lcd.setCursor(2, 0);
+    for (int i = 0; i < nameLength; i++) {
+        lcd.print(storedInMemory.secondHighestName[i]);
+    }
+    lcd.print(" ");
+    lcd.print(storedInMemory.secondHighestScore);
+    lcd.print("   ");
+    lcd.setCursor(2, 1);
+    for (int i = 0; i < nameLength; i++) {
+        lcd.print(storedInMemory.thirdHighestName[i]);
+    }
+    lcd.print(" ");
+    lcd.print(storedInMemory.thirdHighestScore);
+    lcd.print("   ");
   }
+
   int direction = joyMoveDirection();
+  
   if (direction == up) {
     highscoreIndex = highscoreIndex - 1 < 0 ? 0 : highscoreIndex - 1;
-    lcd.clear();
   } else if (direction == down) {
     highscoreIndex = highscoreIndex + 1 >= 2 ? highscoreIndex : highscoreIndex + 1;
-    lcd.clear();
   }
+
   if (debounceButton()) {
-    currentState = initialMenuDisplay;
     lcd.clear();
-    lc.clearDisplay(0);
+    currentState = initialMenuDisplay;
   }
 }
 
@@ -458,11 +494,11 @@ void stopTheGame() {
     showFinalScore();
   }
 
-  if (score > EEPROM.read(firstHighestScoreAdd)) {
+  if (score > storedInMemory.firstHighestScore) {
     bestFirst = 1;
-  } else if (score > EEPROM.read(secondHighestScoreAdd)) {
+  } else if (score > storedInMemory.secondHighestScore) {
     bestSecond = 1;
-  } else if (score > EEPROM.read(thirdHighestScoreAdd)) {
+  } else if (score > storedInMemory.thirdHighestScore) {
     bestThird = 1;
   } else {
     notTheBest = 1;
@@ -485,7 +521,7 @@ void sayThankYou() {
   lcd.print("for playing!");
 }
 
-byte goodToClear = 0;
+
 void sayYouveBeatenTheScore() {
   if (millis() - thankYouTimePassed <= 3000) {
     lcd.setCursor(0,0);
@@ -493,35 +529,41 @@ void sayYouveBeatenTheScore() {
     lcd.setCursor(0,1);
     lcd.print("highest score!  ");
 
-    goodToClear = 1;
+    goodToClearHighScore = 1;
 
   } else {
-    if (goodToClear) {
+    if (goodToClearHighScore) {
       lcd.clear();
-      goodToClear = 0;
+      goodToClearHighScore = 0;
     }
     updateTheHighestScore();
   }
 }
 
-byte nameEntered = 0;
+
 void updateTheHighestScore() {
   if (nameEntered) {    
-    String name(playerName);
     if (bestFirst) {
-      firstHighestName = name;
-      EEPROM.put(firstHighestNameAdd, firstHighestName);
+      storedInMemory.firstHighestName[0] = playerName[0];
+      storedInMemory.firstHighestName[1] = playerName[1];
+      storedInMemory.firstHighestName[2] = playerName[2];
+      storedInMemory.firstHighestScore = score;
+      
     } else if (bestSecond) {
-      secondHighestName = name;
-      EEPROM.put(secondHighestNameAdd, secondHighestName);
+      storedInMemory.secondHighestName[0] = playerName[0];
+      storedInMemory.secondHighestName[1] = playerName[1];
+      storedInMemory.secondHighestName[2] = playerName[2];
+      storedInMemory.secondHighestScore = score;
     } else {
-      thirdHighestName = name;
-      EEPROM.put(thirdHighestNameAdd, thirdHighestName);
+      storedInMemory.thirdHighestName[0] = playerName[0];
+      storedInMemory.thirdHighestName[1] = playerName[1];
+      storedInMemory.thirdHighestName[2] = playerName[2];
+      storedInMemory.thirdHighestScore = score;
     }
+    EEPROM.put(structAddress, storedInMemory);
     freeToReset = 1;
   } else {
     enterTheName();
-    
   }
 }
 
@@ -588,44 +630,43 @@ void displayMatrixByColumn(byte charachterToDisplay[matrixSize]) {
 void changeDifficulty() {
 
   lcdPrint(0, "Difficulty:");
-  currentDifficulty > minDifficulty ? printCharacter(6, 1, '<', 1) : printCharacter(6, 1, ' ', 0);
+  storedInMemory.difficulty > minDifficulty ? printCharacter(6, 1, '<', 1) : printCharacter(6, 1, ' ', 0);
   lcd.setCursor(7, 2);
-  lcd.print(currentDifficulty);
-  currentDifficulty < maxDifficulty ? printCharacter(8, 1, '>', 1) : printCharacter(8, 1, ' ', 0);
+  lcd.print(storedInMemory.difficulty);
+  storedInMemory.difficulty < maxDifficulty ? printCharacter(8, 1, '>', 1) : printCharacter(8, 1, ' ', 0);
   
   int joyDirection = joyMoveDirection();
   if (joyDirection == left) {
-    currentDifficulty = currentDifficulty - 1 < minDifficulty ? minDifficulty : currentDifficulty - 1;
+    storedInMemory.difficulty = storedInMemory.difficulty - 1 < minDifficulty ? minDifficulty : storedInMemory.difficulty - 1;
   } else if (joyDirection == right) {
-    currentDifficulty = currentDifficulty + 1 > maxDifficulty ? maxDifficulty : currentDifficulty + 1;
+    storedInMemory.difficulty = storedInMemory.difficulty + 1 > maxDifficulty ? maxDifficulty : storedInMemory.difficulty + 1;
   }
   byte buttonPushed = debounceButton();
   if (buttonPushed) {
-    EEPROM.update(difficultyAddress, currentDifficulty);
+    EEPROM.put(structAddress, storedInMemory);
     lcd.clear();
-    currentState = initialMenuDisplay;
+    currentState = displaySettings;
     return;
   }
 }
 
 void modifyContrast() {
-
   lcdPrint(0, "Contrast:");
-  contrast > minContrast ? printCharacter(6, 1, '<', 1) : printCharacter(6, 1, ' ', 0);
+  storedInMemory.contrast > minContrast ? printCharacter(6, 1, '<', 1) : printCharacter(6, 1, ' ', 0);
   lcd.setCursor(7, 2);
-  lcd.print(contrast);
-  contrast < maxContrast ? printCharacter(8, 1, '>', 1) : printCharacter(8, 1, ' ', 0);
+  lcd.print(storedInMemory.contrast);
+  storedInMemory.contrast < maxContrast ? printCharacter(8, 1, '>', 1) : printCharacter(8, 1, ' ', 0);
   
   int joyDirection = joyMoveDirection();
   if (joyDirection == left) {
-    contrast = contrast - 1 < minContrast ? minContrast : contrast - 1;
+    storedInMemory.contrast = storedInMemory.contrast - 1 < minContrast ? minContrast : storedInMemory.contrast - 1;
   } else if (joyDirection == right) {
-    contrast = contrast + 1 > maxContrast ? maxContrast : contrast + 1;
+    storedInMemory.contrast = storedInMemory.contrast + 1 > maxContrast ? maxContrast : storedInMemory.contrast + 1;
   }
-  analogWrite(contrastPin, map(contrast, minContrast, maxContrast, 0, 255));
+  analogWrite(contrastPin, map(storedInMemory.contrast, minContrast, maxContrast, 0, 255));
   byte buttonPushed = debounceButton();
   if (buttonPushed) {
-    EEPROM.update(contrastAddress, contrast);
+    EEPROM.put(structAddress, storedInMemory);
     lcd.clear();
     currentState = displaySettings;
     return;
@@ -635,21 +676,21 @@ void modifyContrast() {
 void changeLCDBright() {
   
   lcdPrint(0, "LCD Brightness:");
-  currentLCDBright > minLCDBright ? printCharacter(6, 1, '<', 1) : printCharacter(6, 1, ' ', 0);
+  storedInMemory.brightLCD > minLCDBright ? printCharacter(6, 1, '<', 1) : printCharacter(6, 1, ' ', 0);
   lcd.setCursor(7, 2);
-  lcd.print(currentLCDBright);
-  currentLCDBright < maxLCDBright ? printCharacter(8, 1, '>', 1) : printCharacter(8, 1, ' ', 0);
+  lcd.print(storedInMemory.brightLCD);
+  storedInMemory.brightLCD < maxLCDBright ? printCharacter(8, 1, '>', 1) : printCharacter(8, 1, ' ', 0);
   
   int joyDirection = joyMoveDirection();
   if (joyDirection == left) {
-    currentLCDBright = currentLCDBright - 1 < minLCDBright ? minLCDBright : currentLCDBright - 1;
+    storedInMemory.brightLCD = storedInMemory.brightLCD - 1 < minLCDBright ? minLCDBright : storedInMemory.brightLCD - 1;
   } else if (joyDirection == right) {
-    currentLCDBright = currentLCDBright + 1 > maxLCDBright ? maxLCDBright : currentLCDBright + 1;
+    storedInMemory.brightLCD = storedInMemory.brightLCD + 1 > maxLCDBright ? maxLCDBright : storedInMemory.brightLCD + 1;
   }
-  analogWrite(LCDBacklightPin, map(currentLCDBright, minLCDBright, maxLCDBright, 0, 255));
+  analogWrite(LCDBacklightPin, map(storedInMemory.brightLCD, minLCDBright, maxLCDBright, 0, 255));
   byte buttonPushed = debounceButton();
   if (buttonPushed) {
-    EEPROM.update(brightLCDAddress, currentLCDBright);
+    EEPROM.put(structAddress, storedInMemory);
     lcd.clear();
     currentState = displaySettings;
     return;
@@ -658,21 +699,21 @@ void changeLCDBright() {
 
 void changeMatBright() {
   lcdPrint(0, "Mat Brightness:");
-  currentMatBright > minMatBright ? printCharacter(6, 1, '<', 1) : printCharacter(6, 1, ' ', 0);
+  storedInMemory.brightMat > minMatBright ? printCharacter(6, 1, '<', 1) : printCharacter(6, 1, ' ', 0);
   lcd.setCursor(7, 2);
-  lcd.print(currentMatBright);
-  currentMatBright < maxMatBright ? printCharacter(8, 1, '>', 1) : printCharacter(8, 1, ' ', 0);
+  lcd.print(storedInMemory.brightMat);
+  storedInMemory.brightMat < maxMatBright ? printCharacter(8, 1, '>', 1) : printCharacter(8, 1, ' ', 0);
   
   int joyDirection = joyMoveDirection();
   if (joyDirection == left) {
-    currentMatBright = currentMatBright - 1 < minMatBright ? minMatBright : currentMatBright - 1;
+    storedInMemory.brightMat = storedInMemory.brightMat - 1 < minMatBright ? minMatBright : storedInMemory.brightMat - 1;
   } else if (joyDirection == right) {
-    currentMatBright = currentMatBright + 1 > maxMatBright ? maxMatBright : currentMatBright + 1;
+    storedInMemory.brightMat = storedInMemory.brightMat + 1 > maxMatBright ? maxMatBright : storedInMemory.brightMat + 1;
   }
-  lc.setIntensity(0, map(currentMatBright, minMatBright, maxMatBright, 0, 15));
+  lc.setIntensity(0, map(storedInMemory.brightMat, minMatBright, maxMatBright, 0, 15));
   byte buttonPushed = debounceButton();
   if (buttonPushed) {
-    EEPROM.update(brightMatAddress, currentMatBright);
+    EEPROM.put(structAddress, storedInMemory); 
     lcd.clear();
     currentState = displaySettings;
     return;
@@ -831,7 +872,7 @@ void gameOver() {
 }
 
 void addToScore() {
-  score += level*currentDifficulty;
+  score += level*storedInMemory.difficulty;
 }
 
 void generateNewFoodLocation() {
@@ -923,20 +964,4 @@ void printCharacter(uint8_t column, uint8_t line, char character, byte blinking)
     charBlinkTimePassed = millis();
   }
   lcd.print(blinkCharState ? character : ' ');
-}
-
-/*
-// In case memory is empty, uncomment these lines and call WriteValuesToMemory from setup()
-int contrast = 4;
-int currentDifficulty = 1;
-int currentLCDBright = 7;
-int currentMatBright = 6;
-*/
-
-// Writes contrast, LCDBrightness, MatrixBrightness and Difficulty to EEPROM
-void WriteValuesToMemory() {
-  EEPROM.put(contrastAddress, contrast);
-  EEPROM.put(brightLCDAddress, currentLCDBright);
-  EEPROM.put(brightMatAddress, currentMatBright); 
-  EEPROM.put(difficultyAddress, currentDifficulty);
 }
