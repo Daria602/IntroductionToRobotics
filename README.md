@@ -124,7 +124,7 @@ This includes: homework requirements, implementation details (code, image files,
 <img src="./homework/homework_5/game_setup.jpeg">
 
 * The code can be found [here](homework/homework_5/game.ino)
-* The video showcasing the functionality can be found [here](https://youtu.be/1PpfjFSx9WE)
+* The video showcasing the functionality can be found [here](https://youtu.be/IdPWAjGZ1as)
 
 > :warning: **This is not a final version of the code**. The code contains a lot of mistakes and requires a cleaning crew to be final. Plus, the game is not going toi be THIS :)
 
