@@ -126,7 +126,11 @@ This includes: homework requirements, implementation details (code, image files,
 * The code can be found [here](homework/homework_5/game.ino)
 * The video showcasing the functionality can be found [here](https://youtu.be/IdPWAjGZ1as)
 
-> :warning: **This is not a final version of the code**. The code contains a lot of mistakes and requires a cleaning crew to be final. Plus, the game is not going toi be THIS :)
 
+## Matrix project
 
-*Feedback for the teacher: This is a big leap from the last project. The matrix is very sensitive to any kind of movement and breaks without any reason*
+> :warning: The matrix project has it's own repository. See [this](https://github.com/Daria602/Arduino-Snake) to check it out.
+
+### Code
+The code for this project can be found [here](homework/matrixProject/snake.ino)
+
